@@ -1,12 +1,14 @@
 import socketio
 from pynput import keyboard, mouse
 import time
+import json
+
 
 # Initialize Socket.IO client
 sio = socketio.Client()
 
 #set this client to a raspberry pi room
-room_ip = '10.163.181.85'
+room_ip = '10.163.65.83'
 
 # Define your server URL
 SERVER_URL = 'https://robotdashboard.medien.ifi.lmu.de'
@@ -23,6 +25,7 @@ active = False
 # Function to send notifications
 def send_notification(message):
     print('keylogger-notification: ', message)
+    #message = json.dumps(message)
     sio.emit('keylogger_notification_room', message)
 
 # Function to handle activity detected
@@ -72,6 +75,7 @@ def on_scroll(x, y, dx, dy):
 def start_listening():
     try:
         sio.connect(SERVER_URL)
+        print('Keylogger connected to server')
         # tell server this is a keylogger
         sio.emit('keylogger', room_ip)
 
@@ -81,7 +85,7 @@ def start_listening():
 
             # Configure mouse listener
             with mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll) as m_listener:
-                send_notification('Keylogger started')  # Send initial notification that keylogger is active
+                sio.emit('keylogger_message', 'Keylogger Started')  # Send initial notification that keylogger is active
 
                 # Main loop to check for inactivity
                 while True:
